@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'editor.ui'
 #
@@ -7,6 +7,108 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
+from PyQt5.QtCore import Qt
+
+class ScrollBar(QtWidgets.QScrollBar):
+    ''' A custom, modern scroll bar. '''
+
+    thickness = 4
+    autohide = False
+
+    def __init__(self, orientation, fore = ('hsl', 0, 0, 100),
+                                    back = 'transparent',
+                                    parent = None):
+
+        super(ScrollBar, self).__init__(orientation, parent)
+        self.setStyleSheet(self.scrollBarStyle(fore, back))
+        self.orientation = orientation
+
+        if parent:
+            self.applyToObject(parent)
+
+        if self.autohide:
+            self.setVisible(0)
+
+    def applyToObject(self, obj):
+        ''' apply this scroll bar to the object '''
+
+        if self.orientation == Qt.Vertical:
+            self.setFixedWidth(self.thickness)
+            obj.setVerticalScrollBar(self)
+
+        else:
+            self.setFixedHeight(self.thickness)
+            obj.setHorizontalScrollBar(self)
+
+    def sliderChange(self, event):
+        super(ScrollBar, self).sliderChange(event)
+
+        if self.autohide:
+            self.setVisible(1)
+            self.barTimer = QTimer()
+            self.barTimer.timeout.connect(lambda: self.setVisible(0))
+            self.barTimer.start(2000)
+
+    @staticmethod
+    def disableScrollBars(obj):
+        ''' disable both vertical and horizontal scroll bars for obj '''
+        obj.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        obj.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+    @staticmethod
+    def disableHorizontal(obj):
+        ''' disable horizontal scroll bars for obj '''
+        obj.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+    @staticmethod
+    def disableVertical(obj):
+        ''' disable horizontal scroll bars for obj '''
+        obj.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+    @staticmethod
+    def scrollBarStyle(fore, back):
+        style = """
+                    QScrollBar::vertical {
+                            border: 0px solid white;
+
+                            background: ''' + Stylesheetify(back) +''';
+                            margin: 0px 0px 0px 0px;
+                            width: 4px;
+                    }
+                    QScrollBar::handle:vertical {
+                        background: '''+ Stylesheetify(fore) +''';
+                        border: 0px solid black;
+
+                        border-radius: 5px;
+                        min-height: 0px;
+                        margin: 0px 0px 0px 0px;
+                    }
+                    QScrollBar::horizontal {
+                        border: 0px solid white;
+
+                        background: '''+ Stylesheetify(back) +''';
+                        margin: 0px 0px 0px 0px;
+                        height: 4px;
+                    }
+                    QScrollBar::handle:horizontal {
+                        background: '''+ Stylesheetify(fore) +''';
+                        border: 0px solid black;
+
+                        border-radius: 5px;
+                        min-width: 0px;
+                        margin: 0px 0px 0px 0px;
+                    }
+                    QScrollBar::add-line:vertical{width: 0px; height: 0px;}
+                    QScrollBar::sub-line:vertical{width: 0px; height: 0px;}
+                    QScrollBar::add-page:vertical{background-color: transparent;}
+                    QScrollBar::sub-page:vertical{background-color: transparent;}
+                    QScrollBar::add-line:horizontal{width: 0px; height: 0px;}
+                    QScrollBar::sub-line:horizontal{width: 0px; height: 0px;}
+                    QScrollBar::add-page:horizontal{background-color: transparent;}
+                    QScrollBar::sub-page:horizontal{background-color: transparent;}
+                    """
+        return style
 
 class Ui_Editor(object):
     def setupUi(self, Editor):
@@ -228,7 +330,8 @@ class Ui_Editor(object):
 "    subcontrol-origin: margin;\n"
 "}")
         self.textEdit.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.textEdit.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        #self.textEdit.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        horizontalScrollBar = ScrollBar(QtCore.Qt.Horizontal, parent = self.textEdit)
         self.textEdit.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustIgnored)
         self.textEdit.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
         self.textEdit.setAcceptRichText(False)
